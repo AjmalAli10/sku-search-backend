@@ -237,14 +237,7 @@ async function loadCSVSKUs() {
     console.log("🚀 Starting CSV SKU data loading...");
 
     // Check for CSV file in common locations
-    const possiblePaths = [
-      "./data/skus.csv",
-      "./skus.csv",
-      "./data/sku_data.csv",
-      "./sku_data.csv",
-      "./data/products.csv",
-      "./products.csv",
-    ];
+    const possiblePaths = ["./data/skus.csv", "./skus.csv"];
 
     let csvFilePath = null;
     for (const path of possiblePaths) {
@@ -283,7 +276,7 @@ async function loadCSVSKUs() {
 
     // Initialize the vector database
     console.log("📊 Initializing vector database...");
-    await skuProcessingService.initialize(); // ChromaDB initialization enabled
+    await skuProcessingService.initialize();
 
     // Process and store SKUs in batch
     console.log(`📦 Processing ${cleanedSkuData.length} SKUs for embedding...`);
