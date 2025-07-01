@@ -3,6 +3,7 @@ import cors from "cors";
 import helmet from "helmet";
 import compression from "compression";
 import dotenv from "dotenv";
+import { semanticMatchHandler } from "./normalization/api/semanticMatchHandler.js";
 
 // Load environment variables
 dotenv.config();
@@ -12,6 +13,8 @@ const PORT = process.env.PORT || 3000;
 
 // Security middleware
 app.use(helmet());
+app.use(express.json());
+app.post("/api/semantic-match", semanticMatchHandler);
 
 // CORS middleware
 app.use(
