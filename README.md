@@ -16,17 +16,20 @@ This project provides a backend API for searching and managing SKU data.
 ### Installation
 
 1. Clone the repository:
+
 ```bash
 git clone https://github.com/AjmalAli10/sku-search-backend.git
 cd sku-search-backend
 ```
 
 2. Install dependencies:
+
 ```bash
 npm install
 ```
 
 3. Start the development server:
+
 ```bash
 npm run dev
 ```
@@ -45,4 +48,4 @@ Documentation for API endpoints will be added here.
 
 ## License
 
-This project is licensed under the MIT License. 
+This project is licensed under the MIT License.
