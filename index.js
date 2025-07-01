@@ -34,8 +34,9 @@ app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 // Serve static files
 app.use(express.static("public"));
 
-// Import Chroma visualization service
+// Import services
 import ChromaVisualizationService from "./services/chromaVisualizationService.js";
+import ChromaVectorDBService from "./services/chromaVectorDBService.js";
 
 // Health check endpoint
 app.get("/health", (req, res) => {
@@ -45,6 +46,75 @@ app.get("/health", (req, res) => {
     version: "1.0.0",
     timestamp: new Date().toISOString(),
   });
+});
+
+// Data storage status endpoint
+app.get("/api/storage/status", async (req, res) => {
+  try {
+    const chromaService = new ChromaVectorDBService();
+    await chromaService.initializeCollection();
+    const stats = await chromaService.getCollectionStats();
+
+    res.json({
+      status: "success",
+      data: {
+        totalSKUs: stats.totalVectorCount,
+        collectionName: stats.collectionName,
+        dimension: stats.dimension,
+        hasData: stats.totalVectorCount > 0,
+        sampleIds: stats.sampleIds.slice(0, 5),
+        timestamp: stats.timestamp,
+      },
+    });
+  } catch (error) {
+    console.error("Error checking storage status:", error);
+    res.status(500).json({
+      status: "error",
+      error: "Failed to check storage status",
+      message: error.message,
+    });
+  }
+});
+
+// Get sample data endpoint
+app.get("/api/storage/sample", async (req, res) => {
+  try {
+    const limit = parseInt(req.query.limit) || 5;
+    const chromaService = new ChromaVectorDBService();
+    await chromaService.initializeCollection();
+
+    const stats = await chromaService.getCollectionStats();
+    if (stats.totalVectorCount === 0) {
+      return res.json({
+        status: "success",
+        data: [],
+        message: "No data found in collection",
+      });
+    }
+
+    const sampleIds = stats.sampleIds.slice(0, limit);
+    const skus = await chromaService.getSKUs(sampleIds);
+
+    res.json({
+      status: "success",
+      data: skus.map((sku) => ({
+        id: sku.id,
+        name: sku.metadata?.name,
+        category: sku.metadata?.category_name,
+        brand: sku.metadata?.brand,
+        price: sku.metadata?.price,
+        hasEmbedding: !!sku.embedding,
+        documentPreview: sku.document?.substring(0, 100),
+      })),
+    });
+  } catch (error) {
+    console.error("Error getting sample data:", error);
+    res.status(500).json({
+      status: "error",
+      error: "Failed to get sample data",
+      message: error.message,
+    });
+  }
 });
 
 // Chroma visualization endpoints
@@ -88,6 +158,8 @@ app.get("/", (req, res) => {
     dashboard: "Visit /dashboard to view Chroma data",
     endpoints: {
       health: "GET /health",
+      storageStatus: "GET /api/storage/status",
+      storageSample: "GET /api/storage/sample?limit=5",
       chromaOverview: "GET /api/chroma/overview",
       chromaExport: "GET /api/chroma/export",
     },
