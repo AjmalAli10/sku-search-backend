@@ -1,16 +1,32 @@
-import fs from 'fs/promises';
+import fs from "fs/promises";
 import OpenAI from "openai";
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY, // Make sure your API key is set in your environment
-});
+// Initialize OpenAI client lazily
+let openai = null;
+function getOpenAI() {
+  if (!openai) {
+    openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY, // Make sure your API key is set in your environment
+    });
+  }
+  return openai;
+}
 
-const skuCatalog = JSON.parse(
-  await fs.readFile(`${process.cwd()}/data/skuCatalog.json`)
-);
+// Load SKU catalog lazily
+let skuCatalog = null;
+async function getSkuCatalog() {
+  if (!skuCatalog) {
+    skuCatalog = JSON.parse(
+      await fs.readFile(`${process.cwd()}/data/skuCatalog.json`)
+    );
+  }
+  return skuCatalog;
+}
 
 function cosineSimilarity(a, b) {
-  let dot = 0, normA = 0, normB = 0;
+  let dot = 0,
+    normA = 0,
+    normB = 0;
   for (let i = 0; i < a.length; i++) {
     dot += a[i] * b[i];
     normA += a[i] * a[i];
@@ -21,37 +37,43 @@ function cosineSimilarity(a, b) {
 
 let catalogEmbeddings = [];
 async function prepareCatalogEmbeddings() {
-  catalogEmbeddings = await Promise.all(
-    skuCatalog.map(async (item) => ({
-      name: item.name,
-      embedding: await getEmbedding(item.name)
-    }))
-  );
+  if (catalogEmbeddings.length === 0) {
+    const catalog = await getSkuCatalog();
+    catalogEmbeddings = await Promise.all(
+      catalog.map(async (item) => ({
+        name: item.name,
+        embedding: await getEmbedding(item.name),
+      }))
+    );
+  }
 }
 
 export async function fixASRErrors(text) {
-  if (!text || typeof text !== 'string') return text;
-  if (!catalogEmbeddings.length) await prepareCatalogEmbeddings();
+  if (!text || typeof text !== "string") return text;
+  await prepareCatalogEmbeddings();
 
-  const words = text.toLowerCase().split(' ');
-  const fixedWords = await Promise.all(words.map(async (word) => {
-    const wordEmbedding = await getEmbedding(word);
-    const best = catalogEmbeddings
-      .map(item => ({
-        name: item.name,
-        score: cosineSimilarity(wordEmbedding, item.embedding)
-      }))
-      .sort((a, b) => b.score - a.score)[0];
-    return best && best.score > 0.75 ? best.name : word;
-  }));
+  const words = text.toLowerCase().split(" ");
+  const fixedWords = await Promise.all(
+    words.map(async (word) => {
+      const wordEmbedding = await getEmbedding(word);
+      const best = catalogEmbeddings
+        .map((item) => ({
+          name: item.name,
+          score: cosineSimilarity(wordEmbedding, item.embedding),
+        }))
+        .sort((a, b) => b.score - a.score)[0];
+      return best && best.score > 0.75 ? best.name : word;
+    })
+  );
 
-  return fixedWords.join(' ');
+  return fixedWords.join(" ");
 }
 
 export async function getEmbedding(text) {
-  const response = await openai.embeddings.create({
+  const openaiClient = getOpenAI();
+  const response = await openaiClient.embeddings.create({
     model: "text-embedding-ada-002",
-    input: text
+    input: text,
   });
   return response.data[0].embedding;
 }
@@ -62,33 +84,33 @@ export async function getEmbedding(text) {
  * @returns {Array} - Array of detected potential errors
  */
 export const detectASRErrors = (text) => {
-  if (!text || typeof text !== 'string') {
+  if (!text || typeof text !== "string") {
     return [];
   }
 
-  const words = text.toLowerCase().split(' ');
+  const words = text.toLowerCase().split(" ");
   const errors = [];
 
   words.forEach((word, index) => {
-    const cleanWord = word.replace(/[^\w]/g, '');
-    
+    const cleanWord = word.replace(/[^\w]/g, "");
+
     // Check for known ASR errors
     if (cleanWord && asrErrorMap[cleanWord]) {
       errors.push({
         word: word,
         position: index,
         suggestion: asrErrorMap[cleanWord],
-        type: 'asr_error'
+        type: "asr_error",
       });
     }
-    
+
     // Check for common ASR patterns
     if (cleanWord.match(/^(won|to|too|tree|for|you|are|why|see|sea|bee|be)$/)) {
       errors.push({
         word: word,
         position: index,
         suggestion: asrErrorMap[cleanWord] || word,
-        type: 'potential_asr_error'
+        type: "potential_asr_error",
       });
     }
   });
@@ -102,11 +124,11 @@ export const detectASRErrors = (text) => {
  * @returns {string[]} - Array of correction suggestions
  */
 export const getASRCorrections = (word) => {
-  if (!word || typeof word !== 'string') {
+  if (!word || typeof word !== "string") {
     return [];
   }
 
-  const cleanWord = word.toLowerCase().replace(/[^\w]/g, '');
+  const cleanWord = word.toLowerCase().replace(/[^\w]/g, "");
   const suggestions = [];
 
   // Direct mapping
@@ -115,14 +137,14 @@ export const getASRCorrections = (word) => {
   }
 
   // Pattern-based suggestions
-  if (cleanWord.includes('phone')) {
-    suggestions.push('phone');
+  if (cleanWord.includes("phone")) {
+    suggestions.push("phone");
   }
-  if (cleanWord.includes('laptop')) {
-    suggestions.push('laptop');
+  if (cleanWord.includes("laptop")) {
+    suggestions.push("laptop");
   }
-  if (cleanWord.includes('computer')) {
-    suggestions.push('computer');
+  if (cleanWord.includes("computer")) {
+    suggestions.push("computer");
   }
 
   return [...new Set(suggestions)]; // Remove duplicates
@@ -134,7 +156,7 @@ export const getASRCorrections = (word) => {
  * @returns {boolean} - True if potential ASR errors detected
  */
 export const hasASRErrors = (text) => {
-  if (!text || typeof text !== 'string') {
+  if (!text || typeof text !== "string") {
     return false;
   }
 
@@ -142,15 +164,31 @@ export const hasASRErrors = (text) => {
   return errors.length > 0;
 };
 
+// ASR Error mapping for common speech recognition errors
+const asrErrorMap = {
+  won: "one",
+  to: "two",
+  too: "two",
+  tree: "three",
+  for: "four",
+  you: "you",
+  are: "are",
+  why: "why",
+  see: "see",
+  sea: "see",
+  bee: "be",
+  be: "be",
+};
+
 export async function normalizeAndMatch(query, topN = 3) {
-  if (!catalogEmbeddings.length) await prepareCatalogEmbeddings();
+  await prepareCatalogEmbeddings();
   const normalized = query.trim().toLowerCase();
   const queryEmbedding = await getEmbedding(normalized);
 
   const matches = catalogEmbeddings
-    .map(item => ({
+    .map((item) => ({
       name: item.name,
-      score: cosineSimilarity(queryEmbedding, item.embedding)
+      score: cosineSimilarity(queryEmbedding, item.embedding),
     }))
     .sort((a, b) => b.score - a.score)
     .slice(0, topN);
@@ -159,6 +197,6 @@ export async function normalizeAndMatch(query, topN = 3) {
     input: query,
     normalized,
     embedding: queryEmbedding,
-    bestMatches: matches
+    bestMatches: matches,
   };
-} 
+}
