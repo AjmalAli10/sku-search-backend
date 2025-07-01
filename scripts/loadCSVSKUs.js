@@ -283,7 +283,7 @@ async function loadCSVSKUs() {
 
     // Initialize the vector database
     console.log("📊 Initializing vector database...");
-    await skuProcessingService.initialize();
+    await skuProcessingService.initialize(); // ChromaDB initialization enabled
 
     // Process and store SKUs in batch
     console.log(`📦 Processing ${cleanedSkuData.length} SKUs for embedding...`);
@@ -291,7 +291,7 @@ async function loadCSVSKUs() {
       cleanedSkuData
     );
 
-    console.log("✅ CSV SKU loading and embedding completed!");
+    console.log("✅ CSV SKU loading completed!");
     console.log(
       `📈 Results: ${results.success} successful, ${results.failed} failed`
     );
@@ -304,10 +304,9 @@ async function loadCSVSKUs() {
     const stats = await skuProcessingService.getStats();
     console.log("📊 Final database stats:", stats);
 
-    // Get collection metadata for additional info
-    const metadata =
-      await skuProcessingService.vectorDBService.getCollectionMetadata();
-    console.log("📋 Collection metadata:", metadata);
+    // Get index metadata for additional info
+    const metadata = await skuProcessingService.vectorDBService.getIndexStats();
+    console.log("📋 Index metadata:", metadata);
 
     console.log(
       "\n🎉 All SKU data has been processed and embedded successfully!"

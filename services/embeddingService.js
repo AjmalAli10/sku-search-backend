@@ -54,7 +54,7 @@ class EmbeddingService {
         input: validTexts,
         encoding_format: "float",
       });
-
+      console.log("response", response);
       return {
         embeddings: response.data.map((item) => item.embedding),
         texts: validTexts,
