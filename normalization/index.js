@@ -1,11 +1,6 @@
-import fs from 'fs/promises';
-import { correctSpelling } from '../spellcheck.js';
-import { fixASRErrors } from '../asrFix.js';
-import { getBestCategoryMatches } from '../synonymMap.js';
-
-const skuCatalog = JSON.parse(
-  await fs.readFile(`${process.cwd()}/data/skuCatalog.json`)
-); 
+import { correctSpelling } from './spellcheck.js';
+import { fixASRErrors } from './asrFix.js';
+import { getBestCategoryMatches } from './synonymMap.js';
 
 export async function normalizeAndMatch(query, topN = 3) {
   if (!query || typeof query !== 'string') {

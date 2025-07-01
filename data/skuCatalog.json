@@ -1,7 +1,14 @@
 [
-    { "name": "plywood" },
-    { "name": "fevicol" },
-    { "name": "adhesive" },
-    { "name": "laptop" },
-    { "name": "mobile" }
-  ]
+  {
+    "name": "plywood"
+  },
+  {
+    "name": "fevicol"
+  },
+  {
+    "name": "adhesive"
+  },
+  {
+    "name": "mobile"
+  }
+]

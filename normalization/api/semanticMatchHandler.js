@@ -1,4 +1,4 @@
-import { normalizeAndMatch } from '../normalization/index.js';
+import { normalizeAndMatch } from '../index.js';
 
 export const semanticMatchHandler = async (req, res, next) => {
   try {
