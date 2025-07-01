@@ -30,13 +30,13 @@ class ChromaVectorDBService {
         console.log(`📝 Creating new collection: ${this.collectionName}`);
         this.collection = await this.client.createCollection({
           name: this.collectionName,
+          embeddingFunction: null, // Explicitly set to null since we use OpenAI embeddings
           metadata: {
             description: "SKU embeddings for semantic search",
             created_at: new Date().toISOString(),
             embedding_model: "text-embedding-3-small",
             dimension: 1536,
             embedding_provider: "openai",
-            embedding_function: "none", // No Chroma embedding function since we use OpenAI
           },
         });
       }
