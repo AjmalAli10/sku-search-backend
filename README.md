@@ -1,51 +1,254 @@
 # SKU Search Backend
 
-A backend service for SKU (Stock Keeping Unit) search functionality.
+A powerful backend service for SKU (Stock Keeping Unit) search functionality with advanced query normalization capabilities.
 
-## Description
+## 🚀 Features
 
-This project provides a backend API for searching and managing SKU data.
+### Query Normalization System
+- **Spellcheck**: Corrects spelling errors in search queries
+- **ASR Fix**: Handles voice transcription errors from speech-to-text
+- **Synonym Mapping**: Manages synonyms and abbreviations
+- **Hindi/English Mixed Support**: Handles code-switching common in Indian context
 
-## Getting Started
+### API Endpoints
+- `POST /api/search` - Main search endpoint with normalization
+- `POST /api/test-normalization` - Test normalization with multiple queries
+- `POST /api/analyze-query` - Detailed query analysis
+- `GET /api/health` - Health check endpoint
 
-### Prerequisites
+## 📁 Project Structure
 
-- Node.js (version 18 or higher)
-- npm or yarn
-
-### Installation
-
-1. Clone the repository:
-
-```bash
-git clone https://github.com/AjmalAli10/sku-search-backend.git
-cd sku-search-backend
+```
+/sku-search-backend
+├── /normalization/
+│   ├── index.js          # Main normalization module
+│   ├── spellcheck.js     # Spelling correction
+│   ├── synonymMap.js     # Synonym handling
+│   └── asrFix.js         # ASR error correction
+├── /api/
+│   └── search.js         # Search API endpoints
+├── index.js              # Main server file
+├── test-normalization.js # Test suite
+└── package.json
 ```
 
-2. Install dependencies:
+## 🛠️ Installation
 
 ```bash
+# Install dependencies
 npm install
+
+# Start the server
+npm start
+
+# Run in development mode
+npm run dev
+
+# Run tests
+npm test
 ```
 
-3. Start the development server:
+## 📖 Usage
+
+### 1. Basic Search with Normalization
 
 ```bash
-npm run dev
+curl -X POST http://localhost:3000/api/search \
+  -H "Content-Type: application/json" \
+  -d '{
+    "query": "laptoop with 8 gb ram",
+    "options": {
+      "enableSpellcheck": true,
+      "enableSynonyms": true,
+      "enableASRFix": true
+    }
+  }'
 ```
 
-## API Endpoints
+**Response:**
+```json
+{
+  "success": true,
+  "originalQuery": "laptoop with 8 gb ram",
+  "normalizedQuery": "laptop with 8gb ram",
+  "analysis": {
+    "hasSpellingErrors": true,
+    "hasASRErrors": false,
+    "hasSynonyms": false,
+    "spellingErrors": [...],
+    "suggestions": [...]
+  },
+  "metadata": {
+    "corrections": [
+      {
+        "type": "spellcheck",
+        "original": "laptoop",
+        "corrected": "laptop"
+      }
+    ]
+  }
+}
+```
 
-Documentation for API endpoints will be added here.
+### 2. Test Normalization System
 
-## Contributing
+```bash
+curl -X POST http://localhost:3000/api/test-normalization \
+  -H "Content-Type: application/json" \
+  -d '{
+    "queries": [
+      "laptoop",
+      "eye phone",
+      "wi fi",
+      "सस्ता laptop"
+    ]
+  }'
+```
+
+### 3. Analyze Query
+
+```bash
+curl -X POST http://localhost:3000/api/analyze-query \
+  -H "Content-Type: application/json" \
+  -d '{
+    "query": "samsng laptoop with wi fi"
+  }'
+```
+
+## 🔧 Normalization Features
+
+### Spellcheck
+- Corrects common spelling errors
+- Includes SKU-specific vocabulary
+- Provides spelling suggestions
+
+**Examples:**
+- `laptoop` → `laptop`
+- `moblie` → `mobile`
+- `computr` → `computer`
+
+### ASR (Automatic Speech Recognition) Fix
+- Handles voice transcription errors
+- Corrects common misheard words
+- Fixes technical term spacing
+
+**Examples:**
+- `eye phone` → `iphone`
+- `wi fi` → `wifi`
+- `blue tooth` → `bluetooth`
+- `you are` → `u r`
+
+### Synonym Mapping
+- Manages device type synonyms
+- Handles technical abbreviations
+- Supports brand variations
+
+**Examples:**
+- `mobile` ↔ `phone`
+- `notebook` ↔ `laptop`
+- `gb` ↔ `gigabyte`
+- `ram` ↔ `memory`
+
+### Hindi/English Mixed Support
+- Handles code-switching
+- Translates common Hindi terms
+- Maintains context
+
+**Examples:**
+- `सस्ता` → `cheap`
+- `महंगा` → `expensive`
+- `फोन` → `phone`
+
+## 🧪 Testing
+
+Run the comprehensive test suite:
+
+```bash
+npm test
+```
+
+This will test:
+- Individual query normalization
+- Query analysis
+- Batch processing
+- Specific scenarios
+- Performance metrics
+
+## 📊 API Reference
+
+### POST /api/search
+
+**Request Body:**
+```json
+{
+  "query": "string",
+  "options": {
+    "enableSpellcheck": true,
+    "enableSynonyms": true,
+    "enableASRFix": true,
+    "expandSynonyms": false,
+    "returnMetadata": true
+  }
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "originalQuery": "string",
+  "normalizedQuery": "string",
+  "analysis": {
+    "hasSpellingErrors": boolean,
+    "hasASRErrors": boolean,
+    "hasSynonyms": boolean,
+    "spellingErrors": [...],
+    "asrErrors": [...],
+    "synonymOpportunities": [...]
+  },
+  "metadata": {
+    "corrections": [...],
+    "suggestions": [...],
+    "steps": [...]
+  }
+}
+```
+
+### POST /api/test-normalization
+
+**Request Body:**
+```json
+{
+  "queries": ["string", "string", ...]
+}
+```
+
+### POST /api/analyze-query
+
+**Request Body:**
+```json
+{
+  "query": "string"
+}
+```
+
+## 🔮 Future Enhancements
+
+- [ ] LLM integration for advanced query understanding
+- [ ] Vector database integration for semantic search
+- [ ] Voice transcription endpoint
+- [ ] Multi-language support
+- [ ] Query intent classification
+- [ ] Personalized search history
+
+## 🤝 Contributing
 
 1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+2. Create a feature branch
+3. Make your changes
+4. Add tests
+5. Submit a pull request
 
-## License
+## 📄 License
 
-This project is licensed under the MIT License.
+ISC License

@@ -7,13 +7,16 @@
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node test-normalization.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "express": "^5.1.0"
+    "express": "^5.1.0",
+    "natural": "^8.1.0",
+    "node-nlp": "^5.0.0-alpha.5",
+    "openai": "^5.8.2"
   },
   "devDependencies": {
     "nodemon": "^3.1.10"

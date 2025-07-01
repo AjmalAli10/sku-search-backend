@@ -1,12 +1,14 @@
 import express from "express";
-import { searchHandler } from "./api/search.js";
+import { semanticMatchHandler } from "./normalization/api/semanticMatchHandler.js";
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 
 // POST /api/search route
-app.post("/api/search", searchHandler);
+// app.post("/api/search", searchHandler);
+
+app.post("/api/semantic-match", semanticMatchHandler);
 
 // Global error handler
 app.use((err, req, res, next) => {
