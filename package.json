@@ -7,11 +7,11 @@
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js",
+    "test": "node test-normalization.js",
     "load-csv": "node scripts/loadCSVSKUs.js",
     "test-chroma": "node scripts/testChromaIntegration.js",
     "test-dashboard": "node scripts/testDashboard.js",
-    "test-sku": "node scripts/testSKUProcessing.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test-sku": "node scripts/testSKUProcessing.js"
   },
   "keywords": [
     "sku",
@@ -25,11 +25,11 @@
   "dependencies": {
     "@pinecone-database/pinecone": "^6.1.1",
     "compression": "^1.7.4",
+    "openai": "^5.8.2",
     "cors": "^2.8.5",
     "dotenv": "^16.4.1",
     "express": "^5.1.0",
-    "helmet": "^7.1.0",
-    "openai": "^4.28.0"
+    "helmet": "^7.1.0"
   },
   "devDependencies": {
     "nodemon": "^3.1.10"
