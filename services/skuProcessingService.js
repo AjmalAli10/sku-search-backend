@@ -1,10 +1,10 @@
 import EmbeddingService from "./embeddingService.js";
-import ChromaVectorDBService from "./chromaVectorDBService.js";
+import PineconeVectorDBService from "./pineconeVectorDBService.js";
 
 class SKUProcessingService {
   constructor() {
     this.embeddingService = new EmbeddingService();
-    this.vectorDBService = new ChromaVectorDBService();
+    this.vectorDBService = new PineconeVectorDBService();
   }
 
   /**
@@ -12,7 +12,7 @@ class SKUProcessingService {
    * @returns {Promise<void>}
    */
   async initialize() {
-    await this.vectorDBService.initializeCollection();
+    await this.vectorDBService.initializeIndex();
   }
 
   /**
@@ -94,6 +94,8 @@ class SKUProcessingService {
       const embeddingResult =
         await this.embeddingService.generateBatchSKUEmbeddings(validSKUs);
 
+      console.log("embeddingResult", embeddingResult);
+
       // Prepare vectors for storage using the returned embeddings and texts
       const skuVectors = embeddingResult.validIndices.map(
         (originalIndex, resultIndex) => {
@@ -107,7 +109,16 @@ class SKUProcessingService {
         }
       );
 
+      console.log(`📦 Prepared ${skuVectors.length} vectors for storage`);
+      console.log("🔍 Sample vector data:", {
+        id: skuVectors[0]?.id,
+        vectorLength: skuVectors[0]?.vector?.length,
+        metadataKeys: Object.keys(skuVectors[0]?.metadata || {}),
+        documentLength: skuVectors[0]?.document?.length,
+      });
+
       // Store in vector database
+      console.log("💾 Storing vectors in Pinecone...");
       await this.vectorDBService.addBatchSKUs(skuVectors);
 
       results.success = validSKUs.length;
@@ -173,7 +184,7 @@ class SKUProcessingService {
     // Helper function to sanitize metadata values
     const sanitizeValue = (value) => {
       if (value === null || value === undefined || value === "NULL") {
-        return null;
+        return ""; // Return empty string instead of null for Pinecone compatibility
       }
       if (typeof value === "string") {
         return value.trim();
@@ -216,7 +227,7 @@ class SKUProcessingService {
    * @returns {Promise<Object>} - Database statistics
    */
   async getStats() {
-    return await this.vectorDBService.getCollectionStats();
+    return await this.vectorDBService.getIndexStats();
   }
 
   /**

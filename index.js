@@ -5,6 +5,7 @@ import compression from "compression";
 import dotenv from "dotenv";
 import { semanticMatchHandler } from "./normalization/api/semanticMatchHandler.js";
 
+
 // Load environment variables
 dotenv.config();
 
@@ -37,9 +38,7 @@ app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 // Serve static files
 app.use(express.static("public"));
 
-// Import services
-import ChromaVisualizationService from "./services/chromaVisualizationService.js";
-import ChromaVectorDBService from "./services/chromaVectorDBService.js";
+
 
 // Health check endpoint
 app.get("/health", (req, res) => {
